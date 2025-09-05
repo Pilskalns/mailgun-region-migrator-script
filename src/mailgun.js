@@ -47,22 +47,22 @@ class Mailgun {
         return response.data;
     }
 
-    async getMembersPage(address, pageUrl = null){
+    async getMembersPage(address, pageUrl = null, cache = true){
         let url = pageUrl || `/v3/lists/${address}/members/pages`;
-        let response = await this.axios.get(url);
+        let response = await this.axios.get(url, {cache: cache});
         return response.data;
     }
 
-    async getMembers(address){
+    async getMembers(address, cache = true){
 
         let members = [];
 
-        let page = await this.getMembersPage(address);
+        let page = await this.getMembersPage(address, null, cache);
 
         while(page.items.length > 0){
             members.push(...page.items)
 
-            page = await this.getMembersPage(address, page.paging.next);
+            page = await this.getMembersPage(address, page.paging.next, cache);
         }
 
         return members;
@@ -87,6 +87,19 @@ class Mailgun {
         if(response.status !== 200){
             console.log(response.data);
             throw new Error('Failed to update member:', member.address);
+        }
+
+        return response.data;
+    }
+
+    async deleteMember(address, memberAddress) {
+        let response = await this.axios.delete(`/v3/lists/${address}/members/${memberAddress}`, {
+            cache: false,
+        });
+
+        if(![200, 404].includes(response.status)){
+            console.log(response.data);
+            throw new Error('Failed to delete member:', memberAddress);
         }
 
         return response.data;

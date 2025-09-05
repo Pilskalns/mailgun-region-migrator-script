@@ -15,7 +15,7 @@ program
 
 const options = program.opts();
 
-if(options.clear) {
+if(options.clearCache) {
     const storage = require('./src/cachestorage');
     (async () => {
         await storage().clear();

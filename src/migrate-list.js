@@ -26,6 +26,23 @@ async function migrateList(fromAddress, toAddress, regionA, regionB){
         bar.increment();
     }
     bar.stop();
+
+    console.log('Checking odd members in region B...');
+    let membersB = await regionB.getMembers(toAddress, false);
+    let oddMembers = membersB.filter(mb => !members.find(ma => ma.address === mb.address));
+
+    if(oddMembers.length>0){
+        const bar = new Progress.SingleBar({}, Progress.Presets.rect);
+        console.log(`Found ${oddMembers.length} odd members in region B, deleting...`);
+        bar.start(oddMembers.length, 0);
+        for(const odd of oddMembers){
+            await regionB.deleteMember(toAddress, odd.address);
+            bar.increment();
+        }
+        bar.stop();
+    } else {
+        console.log('No odd members found in region B');
+    }
 }
 
 module.exports.migrateList = migrateList;
