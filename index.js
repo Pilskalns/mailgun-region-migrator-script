@@ -8,6 +8,8 @@ const storage = require("./src/cachestorage");
 
 program
     .option('-a, --address <string>', 'mailing list address to migrate')
+    .option('-t, --to <string>', 'mailing list address to migrate to (if different). Used with --address')
+    .option('-d, --delete', 'delete odd members in region B')
     .option('--all', 'migrate all lists from region A to region B')
     .option('--clear-cache', 'clear cache before running')
     .option('--compare', 'Compare two accounts')
@@ -49,8 +51,10 @@ async function run() {
     if(options.address){
         console.log('Fetching list info for:', options.address);
 
+        let toAddress = options.to || options.address;
+
         try {
-            await migrateList(options.address, options.address, regionA, regionB);
+            await migrateList(options.address, toAddress, regionA, regionB, options.delete);
         } catch(err) {
             console.log(err.message, err.response?.data);
         }
@@ -68,7 +72,7 @@ async function run() {
             for(const list of all.items){
                 console.log(`\nMigrating list:`, list.address);
 
-                await migrateList(list.address, list.address, regionA, regionB);
+                await migrateList(list.address, list.address, regionA, regionB, options.delete);
             }
         } catch(err) {
             console.log(err.message, err.response?.data);

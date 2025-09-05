@@ -1,6 +1,6 @@
 const Progress = require("cli-progress");
 
-async function migrateList(fromAddress, toAddress, regionA, regionB){
+async function migrateList(fromAddress, toAddress, regionA, regionB, shouldDeleteOdd = false) {
     console.log(`Fecthing members from region A: ${fromAddress}`);
 
     let members = await regionA.getMembers(fromAddress);
@@ -18,7 +18,7 @@ async function migrateList(fromAddress, toAddress, regionA, regionB){
 
     const bar = new Progress.SingleBar({}, Progress.Presets.rect);
 
-    console.log(`Uploading`,members.length,` members to region B: ${fromAddress}`);
+    console.log(`Uploading`,members.length,` members to region B: ${toAddress}`);
 
     bar.start(members.length, 0);
     for (const member of members) {
@@ -27,21 +27,23 @@ async function migrateList(fromAddress, toAddress, regionA, regionB){
     }
     bar.stop();
 
-    console.log('Checking odd members in region B...');
-    let membersB = await regionB.getMembers(toAddress, false);
-    let oddMembers = membersB.filter(mb => !members.find(ma => ma.address === mb.address));
+    if(shouldDeleteOdd) {
+        console.log('Checking odd members in region B...');
+        let membersB = await regionB.getMembers(toAddress, false);
+        let oddMembers = membersB.filter(mb => !members.find(ma => ma.address === mb.address));
 
-    if(oddMembers.length>0){
-        const bar = new Progress.SingleBar({}, Progress.Presets.rect);
-        console.log(`Found ${oddMembers.length} odd members in region B, deleting...`);
-        bar.start(oddMembers.length, 0);
-        for(const odd of oddMembers){
-            await regionB.deleteMember(toAddress, odd.address);
-            bar.increment();
+        if(oddMembers.length>0){
+            const bar = new Progress.SingleBar({}, Progress.Presets.rect);
+            console.log(`Found ${oddMembers.length} odd members in region B, deleting...`);
+            bar.start(oddMembers.length, 0);
+            for(const odd of oddMembers){
+                await regionB.deleteMember(toAddress, odd.address);
+                bar.increment();
+            }
+            bar.stop();
+        } else {
+            console.log('No odd members found in region B');
         }
-        bar.stop();
-    } else {
-        console.log('No odd members found in region B');
     }
 }
 
