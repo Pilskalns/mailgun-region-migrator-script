@@ -36,6 +36,8 @@ Usage: index [options]
 
 Options:
   -a, --address <string>  mailing list address to migrate
+  -t, --to <string>       mailing list address to migrate to (if different). Used with --address
+  -d, --delete            delete odd members in region B
   --all                   migrate all lists from region A to region B
   --clear-cache           clear cache before running
   --compare               Compare two accounts
